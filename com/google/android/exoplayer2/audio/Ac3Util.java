@@ -1,0 +1,470 @@
+package com.google.android.exoplayer2.audio;
+
+import androidx.annotation.Nullable;
+import com.bytedance.sdk.openadsdk.TTAdConstant;
+import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.drm.DrmInitData;
+import com.google.android.exoplayer2.util.ParsableBitArray;
+import com.google.android.exoplayer2.util.ParsableByteArray;
+import com.google.android.exoplayer2.util.Util;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.nio.ByteBuffer;
+
+/* loaded from: classes4.dex */
+public final class Ac3Util {
+    public static final int AC3_MAX_RATE_BYTES_PER_SECOND = 80000;
+    public static final int E_AC3_MAX_RATE_BYTES_PER_SECOND = 768000;
+    public static final int TRUEHD_MAX_RATE_BYTES_PER_SECOND = 3062500;
+    public static final int TRUEHD_RECHUNK_SAMPLE_COUNT = 16;
+    public static final int TRUEHD_SYNCFRAME_PREFIX_LENGTH = 10;
+
+    /* renamed from: a */
+    private static final int[] f32333a = {1, 2, 3, 6};
+
+    /* renamed from: b */
+    private static final int[] f32334b = {48000, 44100, 32000};
+
+    /* renamed from: c */
+    private static final int[] f32335c = {24000, 22050, 16000};
+
+    /* renamed from: d */
+    private static final int[] f32336d = {2, 1, 2, 3, 3, 4, 4, 5};
+
+    /* renamed from: e */
+    private static final int[] f32337e = {32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 576, 640};
+
+    /* renamed from: f */
+    private static final int[] f32338f = {69, 87, 104, 121, 139, 174, 208, 243, 278, 348, TTAdConstant.DOWNLOAD_URL_AND_PACKAGE_NAME, 487, 557, 696, 835, 975, 1114, 1253, 1393};
+
+    /* loaded from: classes4.dex */
+    public static final class SyncFrameInfo {
+        public static final int STREAM_TYPE_TYPE0 = 0;
+        public static final int STREAM_TYPE_TYPE1 = 1;
+        public static final int STREAM_TYPE_TYPE2 = 2;
+        public static final int STREAM_TYPE_UNDEFINED = -1;
+        public final int bitrate;
+        public final int channelCount;
+        public final int frameSize;
+        @Nullable
+        public final String mimeType;
+        public final int sampleCount;
+        public final int sampleRate;
+        public final int streamType;
+
+        @Target({ElementType.TYPE_USE})
+        @Documented
+        @Retention(RetentionPolicy.SOURCE)
+        /* loaded from: classes4.dex */
+        public @interface StreamType {
+        }
+
+        private SyncFrameInfo(@Nullable String str, int i, int i2, int i3, int i4, int i5, int i6) {
+            this.mimeType = str;
+            this.streamType = i;
+            this.channelCount = i2;
+            this.sampleRate = i3;
+            this.frameSize = i4;
+            this.sampleCount = i5;
+            this.bitrate = i6;
+        }
+    }
+
+    private Ac3Util() {
+    }
+
+    /* renamed from: a */
+    private static int m75091a(int i, int i2, int i3) {
+        return (i * i2) / (i3 * 32);
+    }
+
+    /* renamed from: b */
+    private static int m75090b(int i, int i2) {
+        int i3 = i2 / 2;
+        if (i >= 0) {
+            int[] iArr = f32334b;
+            if (i < iArr.length && i2 >= 0) {
+                int[] iArr2 = f32338f;
+                if (i3 < iArr2.length) {
+                    int i4 = iArr[i];
+                    if (i4 == 44100) {
+                        return (iArr2[i3] + (i2 % 2)) * 2;
+                    }
+                    int i5 = f32337e[i3];
+                    if (i4 == 32000) {
+                        return i5 * 6;
+                    }
+                    return i5 * 4;
+                }
+                return -1;
+            }
+            return -1;
+        }
+        return -1;
+    }
+
+    public static int findTrueHdSyncframeOffset(ByteBuffer byteBuffer) {
+        int position = byteBuffer.position();
+        int limit = byteBuffer.limit() - 10;
+        for (int i = position; i <= limit; i++) {
+            if ((Util.getBigEndianInt(byteBuffer, i + 4) & (-2)) == -126718022) {
+                return i - position;
+            }
+        }
+        return -1;
+    }
+
+    public static Format parseAc3AnnexFFormat(ParsableByteArray parsableByteArray, String str, String str2, @Nullable DrmInitData drmInitData) {
+        ParsableBitArray parsableBitArray = new ParsableBitArray();
+        parsableBitArray.reset(parsableByteArray);
+        int i = f32334b[parsableBitArray.readBits(2)];
+        parsableBitArray.skipBits(8);
+        int i2 = f32336d[parsableBitArray.readBits(3)];
+        if (parsableBitArray.readBits(1) != 0) {
+            i2++;
+        }
+        int i3 = f32337e[parsableBitArray.readBits(5)] * 1000;
+        parsableBitArray.byteAlign();
+        parsableByteArray.setPosition(parsableBitArray.getBytePosition());
+        return new Format.Builder().setId(str).setSampleMimeType("audio/ac3").setChannelCount(i2).setSampleRate(i).setDrmInitData(drmInitData).setLanguage(str2).setAverageBitrate(i3).setPeakBitrate(i3).build();
+    }
+
+    public static int parseAc3SyncframeAudioSampleCount(ByteBuffer byteBuffer) {
+        boolean z;
+        int i = 3;
+        if (((byteBuffer.get(byteBuffer.position() + 5) & 248) >> 3) > 10) {
+            z = true;
+        } else {
+            z = false;
+        }
+        if (z) {
+            if (((byteBuffer.get(byteBuffer.position() + 4) & 192) >> 6) != 3) {
+                i = (byteBuffer.get(byteBuffer.position() + 4) & 48) >> 4;
+            }
+            return f32333a[i] * 256;
+        }
+        return 1536;
+    }
+
+    public static SyncFrameInfo parseAc3SyncframeInfo(ParsableBitArray parsableBitArray) {
+        boolean z;
+        String str;
+        int i;
+        int i2;
+        int i3;
+        String str2;
+        int i4;
+        int i5;
+        int i6;
+        int i7;
+        int i8;
+        int i9;
+        int i10;
+        int i11;
+        String str3;
+        int i12;
+        int i13;
+        int position = parsableBitArray.getPosition();
+        parsableBitArray.skipBits(40);
+        if (parsableBitArray.readBits(5) > 10) {
+            z = true;
+        } else {
+            z = false;
+        }
+        parsableBitArray.setPosition(position);
+        int i14 = -1;
+        if (z) {
+            parsableBitArray.skipBits(16);
+            int readBits = parsableBitArray.readBits(2);
+            if (readBits != 0) {
+                if (readBits != 1) {
+                    if (readBits == 2) {
+                        i14 = 2;
+                    }
+                } else {
+                    i14 = 1;
+                }
+            } else {
+                i14 = 0;
+            }
+            parsableBitArray.skipBits(3);
+            int readBits2 = (parsableBitArray.readBits(11) + 1) * 2;
+            int readBits3 = parsableBitArray.readBits(2);
+            if (readBits3 == 3) {
+                i9 = f32335c[parsableBitArray.readBits(2)];
+                i8 = 3;
+                i10 = 6;
+            } else {
+                int readBits4 = parsableBitArray.readBits(2);
+                int i15 = f32333a[readBits4];
+                i8 = readBits4;
+                i9 = f32334b[readBits3];
+                i10 = i15;
+            }
+            int i16 = i10 * 256;
+            int m75091a = m75091a(readBits2, i9, i10);
+            int readBits5 = parsableBitArray.readBits(3);
+            boolean readBit = parsableBitArray.readBit();
+            i2 = f32336d[readBits5] + (readBit ? 1 : 0);
+            parsableBitArray.skipBits(10);
+            if (parsableBitArray.readBit()) {
+                parsableBitArray.skipBits(8);
+            }
+            if (readBits5 == 0) {
+                parsableBitArray.skipBits(5);
+                if (parsableBitArray.readBit()) {
+                    parsableBitArray.skipBits(8);
+                }
+            }
+            if (i14 == 1 && parsableBitArray.readBit()) {
+                parsableBitArray.skipBits(16);
+            }
+            if (parsableBitArray.readBit()) {
+                if (readBits5 > 2) {
+                    parsableBitArray.skipBits(2);
+                }
+                if ((readBits5 & 1) != 0 && readBits5 > 2) {
+                    i12 = 6;
+                    parsableBitArray.skipBits(6);
+                } else {
+                    i12 = 6;
+                }
+                if ((readBits5 & 4) != 0) {
+                    parsableBitArray.skipBits(i12);
+                }
+                if (readBit && parsableBitArray.readBit()) {
+                    parsableBitArray.skipBits(5);
+                }
+                if (i14 == 0) {
+                    if (parsableBitArray.readBit()) {
+                        i13 = 6;
+                        parsableBitArray.skipBits(6);
+                    } else {
+                        i13 = 6;
+                    }
+                    if (readBits5 == 0 && parsableBitArray.readBit()) {
+                        parsableBitArray.skipBits(i13);
+                    }
+                    if (parsableBitArray.readBit()) {
+                        parsableBitArray.skipBits(i13);
+                    }
+                    int readBits6 = parsableBitArray.readBits(2);
+                    if (readBits6 == 1) {
+                        parsableBitArray.skipBits(5);
+                    } else if (readBits6 == 2) {
+                        parsableBitArray.skipBits(12);
+                    } else if (readBits6 == 3) {
+                        int readBits7 = parsableBitArray.readBits(5);
+                        if (parsableBitArray.readBit()) {
+                            parsableBitArray.skipBits(5);
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(4);
+                            }
+                            if (parsableBitArray.readBit()) {
+                                if (parsableBitArray.readBit()) {
+                                    parsableBitArray.skipBits(4);
+                                }
+                                if (parsableBitArray.readBit()) {
+                                    parsableBitArray.skipBits(4);
+                                }
+                            }
+                        }
+                        if (parsableBitArray.readBit()) {
+                            parsableBitArray.skipBits(5);
+                            if (parsableBitArray.readBit()) {
+                                parsableBitArray.skipBits(7);
+                                if (parsableBitArray.readBit()) {
+                                    parsableBitArray.skipBits(8);
+                                }
+                            }
+                        }
+                        parsableBitArray.skipBits((readBits7 + 2) * 8);
+                        parsableBitArray.byteAlign();
+                    }
+                    if (readBits5 < 2) {
+                        if (parsableBitArray.readBit()) {
+                            parsableBitArray.skipBits(14);
+                        }
+                        if (readBits5 == 0 && parsableBitArray.readBit()) {
+                            parsableBitArray.skipBits(14);
+                        }
+                    }
+                    if (parsableBitArray.readBit()) {
+                        if (i8 == 0) {
+                            parsableBitArray.skipBits(5);
+                        } else {
+                            for (int i17 = 0; i17 < i10; i17++) {
+                                if (parsableBitArray.readBit()) {
+                                    parsableBitArray.skipBits(5);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (parsableBitArray.readBit()) {
+                parsableBitArray.skipBits(5);
+                if (readBits5 == 2) {
+                    parsableBitArray.skipBits(4);
+                }
+                if (readBits5 >= 6) {
+                    parsableBitArray.skipBits(2);
+                }
+                if (parsableBitArray.readBit()) {
+                    parsableBitArray.skipBits(8);
+                }
+                if (readBits5 == 0 && parsableBitArray.readBit()) {
+                    parsableBitArray.skipBits(8);
+                }
+                if (readBits3 < 3) {
+                    parsableBitArray.skipBit();
+                }
+            }
+            if (i14 == 0 && i8 != 3) {
+                parsableBitArray.skipBit();
+            }
+            if (i14 == 2 && (i8 == 3 || parsableBitArray.readBit())) {
+                i11 = 6;
+                parsableBitArray.skipBits(6);
+            } else {
+                i11 = 6;
+            }
+            if (parsableBitArray.readBit() && parsableBitArray.readBits(i11) == 1 && parsableBitArray.readBits(8) == 1) {
+                str3 = "audio/eac3-joc";
+            } else {
+                str3 = "audio/eac3";
+            }
+            str2 = str3;
+            i3 = i14;
+            i4 = i16;
+            i6 = readBits2;
+            i7 = i9;
+            i5 = m75091a;
+        } else {
+            parsableBitArray.skipBits(32);
+            int readBits8 = parsableBitArray.readBits(2);
+            if (readBits8 == 3) {
+                str = null;
+            } else {
+                str = "audio/ac3";
+            }
+            int readBits9 = parsableBitArray.readBits(6);
+            int i18 = f32337e[readBits9 / 2] * 1000;
+            int m75090b = m75090b(readBits8, readBits9);
+            parsableBitArray.skipBits(8);
+            int readBits10 = parsableBitArray.readBits(3);
+            if ((readBits10 & 1) != 0 && readBits10 != 1) {
+                parsableBitArray.skipBits(2);
+            }
+            if ((readBits10 & 4) != 0) {
+                parsableBitArray.skipBits(2);
+            }
+            if (readBits10 == 2) {
+                parsableBitArray.skipBits(2);
+            }
+            int[] iArr = f32334b;
+            if (readBits8 < iArr.length) {
+                i = iArr[readBits8];
+            } else {
+                i = -1;
+            }
+            i2 = f32336d[readBits10] + (parsableBitArray.readBit() ? 1 : 0);
+            i3 = -1;
+            str2 = str;
+            i4 = 1536;
+            i5 = i18;
+            i6 = m75090b;
+            i7 = i;
+        }
+        return new SyncFrameInfo(str2, i3, i2, i7, i6, i4, i5);
+    }
+
+    public static int parseAc3SyncframeSize(byte[] bArr) {
+        boolean z;
+        if (bArr.length < 6) {
+            return -1;
+        }
+        if (((bArr[5] & 248) >> 3) > 10) {
+            z = true;
+        } else {
+            z = false;
+        }
+        if (z) {
+            return (((bArr[3] & 255) | ((bArr[2] & 7) << 8)) + 1) * 2;
+        }
+        byte b = bArr[4];
+        return m75090b((b & 192) >> 6, b & 63);
+    }
+
+    public static Format parseEAc3AnnexFFormat(ParsableByteArray parsableByteArray, String str, String str2, @Nullable DrmInitData drmInitData) {
+        String str3;
+        ParsableBitArray parsableBitArray = new ParsableBitArray();
+        parsableBitArray.reset(parsableByteArray);
+        int readBits = parsableBitArray.readBits(13) * 1000;
+        parsableBitArray.skipBits(3);
+        int i = f32334b[parsableBitArray.readBits(2)];
+        parsableBitArray.skipBits(10);
+        int i2 = f32336d[parsableBitArray.readBits(3)];
+        if (parsableBitArray.readBits(1) != 0) {
+            i2++;
+        }
+        parsableBitArray.skipBits(3);
+        int readBits2 = parsableBitArray.readBits(4);
+        parsableBitArray.skipBits(1);
+        if (readBits2 > 0) {
+            parsableBitArray.skipBytes(6);
+            if (parsableBitArray.readBits(1) != 0) {
+                i2 += 2;
+            }
+            parsableBitArray.skipBits(1);
+        }
+        if (parsableBitArray.bitsLeft() > 7) {
+            parsableBitArray.skipBits(7);
+            if (parsableBitArray.readBits(1) != 0) {
+                str3 = "audio/eac3-joc";
+                parsableBitArray.byteAlign();
+                parsableByteArray.setPosition(parsableBitArray.getBytePosition());
+                return new Format.Builder().setId(str).setSampleMimeType(str3).setChannelCount(i2).setSampleRate(i).setDrmInitData(drmInitData).setLanguage(str2).setPeakBitrate(readBits).build();
+            }
+        }
+        str3 = "audio/eac3";
+        parsableBitArray.byteAlign();
+        parsableByteArray.setPosition(parsableBitArray.getBytePosition());
+        return new Format.Builder().setId(str).setSampleMimeType(str3).setChannelCount(i2).setSampleRate(i).setDrmInitData(drmInitData).setLanguage(str2).setPeakBitrate(readBits).build();
+    }
+
+    public static int parseTrueHdSyncframeAudioSampleCount(byte[] bArr) {
+        if (bArr[4] == -8 && bArr[5] == 114 && bArr[6] == 111) {
+            byte b = bArr[7];
+            if ((b & 254) == 186) {
+                return 40 << ((bArr[(b & 255) == 187 ? '\t' : '\b'] >> 4) & 7);
+            }
+        }
+        return 0;
+    }
+
+    public static int parseTrueHdSyncframeAudioSampleCount(ByteBuffer byteBuffer, int i) {
+        return 40 << ((byteBuffer.get((byteBuffer.position() + i) + ((byteBuffer.get((byteBuffer.position() + i) + 7) & 255) == 187 ? 9 : 8)) >> 4) & 7);
+    }
+}

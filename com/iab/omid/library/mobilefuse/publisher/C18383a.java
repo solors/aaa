@@ -1,0 +1,17 @@
+package com.iab.omid.library.mobilefuse.publisher;
+
+import android.annotation.SuppressLint;
+import android.webkit.WebView;
+
+/* renamed from: com.iab.omid.library.mobilefuse.publisher.a */
+/* loaded from: classes6.dex */
+public class C18383a extends AdSessionStatePublisher {
+    @SuppressLint({"SetJavaScriptEnabled"})
+    public C18383a(String str, WebView webView) {
+        super(str);
+        if (webView != null && !webView.getSettings().getJavaScriptEnabled()) {
+            webView.getSettings().setJavaScriptEnabled(true);
+        }
+        m62931a(webView);
+    }
+}

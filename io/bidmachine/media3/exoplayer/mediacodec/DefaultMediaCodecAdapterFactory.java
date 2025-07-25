@@ -1,0 +1,50 @@
+package io.bidmachine.media3.exoplayer.mediacodec;
+
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import io.bidmachine.media3.common.MimeTypes;
+import io.bidmachine.media3.common.util.Log;
+import io.bidmachine.media3.common.util.UnstableApi;
+import io.bidmachine.media3.common.util.Util;
+import io.bidmachine.media3.exoplayer.mediacodec.AsynchronousMediaCodecAdapter;
+import io.bidmachine.media3.exoplayer.mediacodec.MediaCodecAdapter;
+import io.bidmachine.media3.exoplayer.mediacodec.SynchronousMediaCodecAdapter;
+import java.io.IOException;
+
+@UnstableApi
+/* loaded from: classes9.dex */
+public final class DefaultMediaCodecAdapterFactory implements MediaCodecAdapter.Factory {
+    private static final int MODE_DEFAULT = 0;
+    private static final int MODE_DISABLED = 2;
+    private static final int MODE_ENABLED = 1;
+    private static final String TAG = "DMCodecAdapterFactory";
+    private int asynchronousMode = 0;
+    private boolean enableSynchronizeCodecInteractionsWithQueueing;
+
+    @Override // io.bidmachine.media3.exoplayer.mediacodec.MediaCodecAdapter.Factory
+    public MediaCodecAdapter createAdapter(MediaCodecAdapter.Configuration configuration) throws IOException {
+        int i;
+        int i2 = Util.SDK_INT;
+        if (i2 >= 23 && ((i = this.asynchronousMode) == 1 || (i == 0 && i2 >= 31))) {
+            int trackType = MimeTypes.getTrackType(configuration.format.sampleMimeType);
+            Log.m19947i(TAG, "Creating an asynchronous MediaCodec adapter for track type " + Util.getTrackTypeString(trackType));
+            return new AsynchronousMediaCodecAdapter.Factory(trackType, this.enableSynchronizeCodecInteractionsWithQueueing).createAdapter(configuration);
+        }
+        return new SynchronousMediaCodecAdapter.Factory().createAdapter(configuration);
+    }
+
+    public void experimentalSetSynchronizeCodecInteractionsWithQueueingEnabled(boolean z) {
+        this.enableSynchronizeCodecInteractionsWithQueueing = z;
+    }
+
+    @CanIgnoreReturnValue
+    public DefaultMediaCodecAdapterFactory forceDisableAsynchronous() {
+        this.asynchronousMode = 2;
+        return this;
+    }
+
+    @CanIgnoreReturnValue
+    public DefaultMediaCodecAdapterFactory forceEnableAsynchronous() {
+        this.asynchronousMode = 1;
+        return this;
+    }
+}

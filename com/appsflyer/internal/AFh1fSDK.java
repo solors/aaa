@@ -1,0 +1,9 @@
+package com.appsflyer.internal;
+
+/* loaded from: classes2.dex */
+public final class AFh1fSDK extends AFh1jSDK {
+    @Override // com.appsflyer.internal.AFa1pSDK
+    public final AFf1ySDK values() {
+        return AFf1ySDK.SDK_SERVICES;
+    }
+}

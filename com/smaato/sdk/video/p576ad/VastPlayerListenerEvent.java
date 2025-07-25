@@ -1,0 +1,20 @@
+package com.smaato.sdk.video.p576ad;
+
+/* renamed from: com.smaato.sdk.video.ad.VastPlayerListenerEvent */
+/* loaded from: classes7.dex */
+public enum VastPlayerListenerEvent {
+    SMAATO_VIDEO_CLICKED,
+    SMAATO_COMPANION_CLICKED,
+    SMAATO_ICON_CLICKED,
+    SMAATO_VIDEO_FIRST_QUARTILE,
+    SMAATO_VIDEO_MIDPOINT,
+    SMAATO_VIDEO_THIRD_QUARTILE,
+    SMAATO_VIDEO_COMPLETED,
+    SMAATO_VIDEO_RESUMED,
+    SMAATO_VIDEO_PAUSED,
+    SMAATO_VIDEO_MUTE_CLICKED,
+    SMAATO_VIDEO_UNMUTE_CLICKED,
+    SMAATO_VIDEO_SKIPPED,
+    SMAATO_COMPANION_SHOWN,
+    SMAATO_VIDEO_CLOSED
+}

@@ -1,0 +1,23 @@
+package com.amazon.p047a.p048a.p066n.p067a;
+
+/* renamed from: com.amazon.a.a.n.a.g */
+/* loaded from: classes2.dex */
+public enum FailureResultReason {
+    SLA_NO_CUSTOMER_ID,
+    SLA_NO_DEVICE_ID,
+    SLA_NO_LICENSE,
+    CLA_LICENSE_EXPIRED,
+    CLA_NOT_ENTITLED,
+    CLA_LICENSE_INVALID,
+    CLA_NO_CONTENT_ID,
+    CLA_NO_DEVICE_ID,
+    CLA_NO_VALID_LICENSE,
+    CLA_NOT_LOGGED_IN,
+    CLA_NULL_LOCKER_RESPONSE,
+    CSA_CONTENT_MD_PKG_NAME_MISMATCH,
+    CSA_INVALID_SIGNATURE,
+    CSA_INVALID_CHECKSUM,
+    CSA_NO_CONTENT_METADATA,
+    VLA_NOT_LOGGED_IN,
+    VLIA_NOT_LOGGED_IN
+}

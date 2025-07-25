@@ -1,0 +1,25 @@
+package re;
+
+import kotlin.Metadata;
+import kotlin.jvm.internal.Intrinsics;
+import kotlinx.serialization.descriptors.SerialDescriptor;
+import org.jetbrains.annotations.NotNull;
+
+/* compiled from: CollectionDescriptors.kt */
+@Metadata
+/* renamed from: re.i0 */
+/* loaded from: classes8.dex */
+public final class C39504i0 extends AbstractC39550v0 {
+    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
+    public C39504i0(@NotNull SerialDescriptor elementDesc) {
+        super(elementDesc, null);
+        Intrinsics.checkNotNullParameter(elementDesc, "elementDesc");
+    }
+
+    @Override // kotlinx.serialization.descriptors.SerialDescriptor
+    @NotNull
+    /* renamed from: h */
+    public String mo12259h() {
+        return "kotlin.collections.HashSet";
+    }
+}

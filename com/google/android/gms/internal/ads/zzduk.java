@@ -1,0 +1,22 @@
+package com.google.android.gms.internal.ads;
+
+import java.util.concurrent.Executor;
+
+/* compiled from: com.google.android.gms:play-services-ads@@23.6.0 */
+/* loaded from: classes5.dex */
+public final class zzduk implements zzher {
+    private final zzhfj zza;
+
+    public zzduk(zzhfj zzhfjVar, zzhfj zzhfjVar2) {
+        this.zza = zzhfjVar;
+    }
+
+    public static zzddk zza(zzduj zzdujVar, Executor executor) {
+        return new zzddk(zzdujVar, executor);
+    }
+
+    @Override // com.google.android.gms.internal.ads.zzhfj, com.google.android.gms.internal.ads.zzhfi
+    public final /* bridge */ /* synthetic */ Object zzb() {
+        return zza((zzduj) this.zza.zzb(), zzffh.zzc());
+    }
+}

@@ -1,0 +1,104 @@
+package com.applovin.impl;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+import com.ironsource.mediationsdk.logger.IronSourceError;
+
+/* renamed from: com.applovin.impl.u3 */
+/* loaded from: classes2.dex */
+public final class C5597u3 extends AbstractC5837xa {
+    public static final Parcelable.Creator<C5597u3> CREATOR = new C5598a();
+
+    /* renamed from: b */
+    public final String f11032b;
+
+    /* renamed from: c */
+    public final String f11033c;
+
+    /* renamed from: d */
+    public final String f11034d;
+
+    /* renamed from: com.applovin.impl.u3$a */
+    /* loaded from: classes2.dex */
+    class C5598a implements Parcelable.Creator {
+        C5598a() {
+        }
+
+        @Override // android.os.Parcelable.Creator
+        /* renamed from: a */
+        public C5597u3[] newArray(int i) {
+            return new C5597u3[i];
+        }
+
+        @Override // android.os.Parcelable.Creator
+        /* renamed from: a */
+        public C5597u3 createFromParcel(Parcel parcel) {
+            return new C5597u3(parcel);
+        }
+    }
+
+    C5597u3(Parcel parcel) {
+        super("COMM");
+        this.f11032b = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+        this.f11033c = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+        this.f11034d = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || C5597u3.class != obj.getClass()) {
+            return false;
+        }
+        C5597u3 c5597u3 = (C5597u3) obj;
+        if (AbstractC5863xp.m93016a((Object) this.f11033c, (Object) c5597u3.f11033c) && AbstractC5863xp.m93016a((Object) this.f11032b, (Object) c5597u3.f11032b) && AbstractC5863xp.m93016a((Object) this.f11034d, (Object) c5597u3.f11034d)) {
+            return true;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        int i;
+        int i2;
+        String str = this.f11032b;
+        int i3 = 0;
+        if (str != null) {
+            i = str.hashCode();
+        } else {
+            i = 0;
+        }
+        int i4 = (i + IronSourceError.ERROR_NON_EXISTENT_INSTANCE) * 31;
+        String str2 = this.f11033c;
+        if (str2 != null) {
+            i2 = str2.hashCode();
+        } else {
+            i2 = 0;
+        }
+        int i5 = (i4 + i2) * 31;
+        String str3 = this.f11034d;
+        if (str3 != null) {
+            i3 = str3.hashCode();
+        }
+        return i5 + i3;
+    }
+
+    @Override // com.applovin.impl.AbstractC5837xa
+    public String toString() {
+        return this.f11957a + ": language=" + this.f11032b + ", description=" + this.f11033c;
+    }
+
+    @Override // android.os.Parcelable
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.f11957a);
+        parcel.writeString(this.f11032b);
+        parcel.writeString(this.f11034d);
+    }
+
+    public C5597u3(String str, String str2, String str3) {
+        super("COMM");
+        this.f11032b = str;
+        this.f11033c = str2;
+        this.f11034d = str3;
+    }
+}

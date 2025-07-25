@@ -1,0 +1,111 @@
+package com.applovin.impl;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+import com.ironsource.mediationsdk.logger.IronSourceError;
+import java.util.Arrays;
+
+/* renamed from: com.applovin.impl.z9 */
+/* loaded from: classes2.dex */
+public final class C5962z9 extends AbstractC5837xa {
+    public static final Parcelable.Creator<C5962z9> CREATOR = new C5963a();
+
+    /* renamed from: b */
+    public final String f12534b;
+
+    /* renamed from: c */
+    public final String f12535c;
+
+    /* renamed from: d */
+    public final String f12536d;
+
+    /* renamed from: f */
+    public final byte[] f12537f;
+
+    /* renamed from: com.applovin.impl.z9$a */
+    /* loaded from: classes2.dex */
+    class C5963a implements Parcelable.Creator {
+        C5963a() {
+        }
+
+        @Override // android.os.Parcelable.Creator
+        /* renamed from: a */
+        public C5962z9[] newArray(int i) {
+            return new C5962z9[i];
+        }
+
+        @Override // android.os.Parcelable.Creator
+        /* renamed from: a */
+        public C5962z9 createFromParcel(Parcel parcel) {
+            return new C5962z9(parcel);
+        }
+    }
+
+    C5962z9(Parcel parcel) {
+        super("GEOB");
+        this.f12534b = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+        this.f12535c = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+        this.f12536d = (String) AbstractC5863xp.m93017a((Object) parcel.readString());
+        this.f12537f = (byte[]) AbstractC5863xp.m93017a((Object) parcel.createByteArray());
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || C5962z9.class != obj.getClass()) {
+            return false;
+        }
+        C5962z9 c5962z9 = (C5962z9) obj;
+        if (AbstractC5863xp.m93016a((Object) this.f12534b, (Object) c5962z9.f12534b) && AbstractC5863xp.m93016a((Object) this.f12535c, (Object) c5962z9.f12535c) && AbstractC5863xp.m93016a((Object) this.f12536d, (Object) c5962z9.f12536d) && Arrays.equals(this.f12537f, c5962z9.f12537f)) {
+            return true;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        int i;
+        int i2;
+        String str = this.f12534b;
+        int i3 = 0;
+        if (str != null) {
+            i = str.hashCode();
+        } else {
+            i = 0;
+        }
+        int i4 = (i + IronSourceError.ERROR_NON_EXISTENT_INSTANCE) * 31;
+        String str2 = this.f12535c;
+        if (str2 != null) {
+            i2 = str2.hashCode();
+        } else {
+            i2 = 0;
+        }
+        int i5 = (i4 + i2) * 31;
+        String str3 = this.f12536d;
+        if (str3 != null) {
+            i3 = str3.hashCode();
+        }
+        return ((i5 + i3) * 31) + Arrays.hashCode(this.f12537f);
+    }
+
+    @Override // com.applovin.impl.AbstractC5837xa
+    public String toString() {
+        return this.f11957a + ": mimeType=" + this.f12534b + ", filename=" + this.f12535c + ", description=" + this.f12536d;
+    }
+
+    @Override // android.os.Parcelable
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.f12534b);
+        parcel.writeString(this.f12535c);
+        parcel.writeString(this.f12536d);
+        parcel.writeByteArray(this.f12537f);
+    }
+
+    public C5962z9(String str, String str2, String str3, byte[] bArr) {
+        super("GEOB");
+        this.f12534b = str;
+        this.f12535c = str2;
+        this.f12536d = str3;
+        this.f12537f = bArr;
+    }
+}

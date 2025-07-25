@@ -1,0 +1,8 @@
+package com.google.android.gms.measurement.internal;
+
+/* JADX INFO: Access modifiers changed from: package-private */
+/* compiled from: com.google.android.gms:play-services-measurement-impl@@22.0.2 */
+/* loaded from: classes5.dex */
+public interface zzfh<V> {
+    V zza();
+}

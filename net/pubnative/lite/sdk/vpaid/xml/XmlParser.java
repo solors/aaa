@@ -1,0 +1,168 @@
+package net.pubnative.lite.sdk.vpaid.xml;
+
+import android.text.TextUtils;
+import java.io.StringReader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+/* loaded from: classes10.dex */
+public class XmlParser {
+    private static <T extends Annotation> T getAnnotation(AnnotatedElement annotatedElement, Class<? extends Annotation> cls) {
+        for (Annotation annotation : annotatedElement.getDeclaredAnnotations()) {
+            T t = (T) annotation;
+            if (cls.isInstance(t)) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    private static <T> Field getFieldForTag(T t, String str) {
+        Field[] declaredFields;
+        for (Field field : t.getClass().getDeclaredFields()) {
+            Tag tag = (Tag) getAnnotation(field, Tag.class);
+            if (tag != null) {
+                String value = tag.value();
+                if (TextUtils.isEmpty(value)) {
+                    value = field.getName();
+                }
+                if (value.equalsIgnoreCase(str)) {
+                    return field;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static <T> Field getFieldForText(T t) {
+        Field[] declaredFields;
+        for (Field field : t.getClass().getDeclaredFields()) {
+            if (((Text) getAnnotation(field, Text.class)) != null) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    public static <T> T parse(String str, Class<T> cls) throws Exception {
+        XmlPullParser newPullParser = XmlPullParserFactory.newInstance().newPullParser();
+        newPullParser.setInput(new StringReader(str));
+        newPullParser.next();
+        return (T) parseTag(newPullParser, cls);
+    }
+
+    private static <T> void parseAttributes(XmlPullParser xmlPullParser, T t) throws IllegalAccessException {
+        Field[] declaredFields;
+        for (Field field : t.getClass().getDeclaredFields()) {
+            Attribute attribute = (Attribute) getAnnotation(field, Attribute.class);
+            if (attribute != null) {
+                String value = attribute.value();
+                if (TextUtils.isEmpty(value)) {
+                    value = field.getName();
+                }
+                String attributeValue = xmlPullParser.getAttributeValue(null, value);
+                if (!TextUtils.isEmpty(attributeValue)) {
+                    field.setAccessible(true);
+                    Class<?> type = field.getType();
+                    if (type.equals(String.class)) {
+                        field.set(t, attributeValue);
+                    } else if (!Long.class.equals(type) && !Long.TYPE.equals(type)) {
+                        if (!Integer.class.equals(type) && !Integer.TYPE.equals(type)) {
+                            if (!Byte.class.equals(type) && !Byte.TYPE.equals(type)) {
+                                if (!Double.class.equals(type) && !Double.TYPE.equals(type)) {
+                                    if (!Float.class.equals(type) && !Float.TYPE.equals(type)) {
+                                        if (Boolean.class.equals(type) || Boolean.TYPE.equals(type)) {
+                                            field.setBoolean(t, Boolean.parseBoolean(attributeValue));
+                                        }
+                                    } else {
+                                        field.setFloat(t, Float.parseFloat(attributeValue));
+                                    }
+                                } else {
+                                    field.setDouble(t, Double.parseDouble(attributeValue));
+                                }
+                            } else {
+                                field.setByte(t, Byte.parseByte(attributeValue));
+                            }
+                        } else {
+                            field.setInt(t, Integer.parseInt(attributeValue));
+                        }
+                    } else {
+                        field.setLong(t, Long.parseLong(attributeValue));
+                    }
+                }
+            }
+        }
+    }
+
+    private static <T> void parseElements(XmlPullParser xmlPullParser, T t) throws Exception {
+        while (true) {
+            if (xmlPullParser.getEventType() != 2 && xmlPullParser.getEventType() != 4) {
+                return;
+            }
+            if (xmlPullParser.getEventType() == 4) {
+                parseText(xmlPullParser, t);
+            } else {
+                parseSubTag(xmlPullParser, t);
+            }
+        }
+    }
+
+    private static <T> void parseSubTag(XmlPullParser xmlPullParser, T t) throws Exception {
+        String name = xmlPullParser.getName();
+        int depth = xmlPullParser.getDepth();
+        Field fieldForTag = getFieldForTag(t, name);
+        if (fieldForTag == null) {
+            skipTag(xmlPullParser, name, depth);
+        } else if (List.class.isAssignableFrom(fieldForTag.getType())) {
+            Object parseTag = parseTag(xmlPullParser, (Class) ((ParameterizedType) fieldForTag.getGenericType()).getActualTypeArguments()[0]);
+            fieldForTag.setAccessible(true);
+            List list = (List) fieldForTag.get(t);
+            if (list == null) {
+                list = new ArrayList();
+                fieldForTag.set(t, list);
+            }
+            list.add(parseTag);
+        } else {
+            Object parseTag2 = parseTag(xmlPullParser, fieldForTag.getType());
+            fieldForTag.setAccessible(true);
+            fieldForTag.set(t, parseTag2);
+        }
+    }
+
+    private static <T> T parseTag(XmlPullParser xmlPullParser, Class<T> cls) throws Exception {
+        T newInstance = cls.newInstance();
+        parseAttributes(xmlPullParser, newInstance);
+        xmlPullParser.next();
+        parseElements(xmlPullParser, newInstance);
+        xmlPullParser.next();
+        return newInstance;
+    }
+
+    private static <T> void parseText(XmlPullParser xmlPullParser, T t) throws Exception {
+        if (xmlPullParser.getEventType() != 4) {
+            return;
+        }
+        Field fieldForText = getFieldForText(t);
+        if (fieldForText != null) {
+            fieldForText.setAccessible(true);
+            fieldForText.set(t, xmlPullParser.getText());
+        }
+        xmlPullParser.next();
+    }
+
+    private static void skipTag(XmlPullParser xmlPullParser, String str, int i) throws Exception {
+        while (true) {
+            xmlPullParser.next();
+            if (xmlPullParser.getEventType() == 3 && xmlPullParser.getName().equalsIgnoreCase(str) && xmlPullParser.getDepth() == i) {
+                xmlPullParser.next();
+                return;
+            }
+        }
+    }
+}
